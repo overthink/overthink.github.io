@@ -2,9 +2,9 @@ meta:
     absolute_baseurl: http://proofbyexample.com
 highlighter: rouge
 permalink: /:title.html
-markdown: kramdown
 exclude:
   - serve
-  - publish
+  - update
   - README.md
   - .gitignore
+
