@@ -1,0 +1,3 @@
+#!/bin/bash
+# Keep dev gems up to date with versions used by GitHub
+bundle update github-pages
