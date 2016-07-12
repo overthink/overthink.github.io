@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="author" content="Mark Feeney"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     {% if page.description %}
     <meta name="description" content="{{ page.description }}"/>
@@ -11,54 +13,64 @@
     {% endif %}
 
     <title>{{ page.title }} - Proof by Example</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://feeds.feedburner.com/proofbyexample/">
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-    <link href='http://fonts.googleapis.com/css?family=Alfa+Slab+One|PT+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/pyg.css">
     {% include analytics.html %}
   </head>
   <body>
 
-    <div id="header-container" class="row-fluid">
-      <div class="span8 offset2">
-        <h1 id="title"><a href="/" title="Home page">Proof By Example</a></h1>
-        <h2>Programming and computer stuff</h2>
+    <header class="header">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-8 col-md-offset-2">
+            <h1><a href="/" title="Home page">Proof By Example</a></h1>
+            <small>Programming blog by Mark Feeney</small>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+          {{ content }}
+        </div>
       </div>
     </div>
 
-    <div id="main-container" class="row-fluid">
-      <div id="main" class="span8 offset2">
-        {{ content }}
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12 col-sm-8 col-sm-offset-2">
+            <p>
+              <dl class="dl-horizontal">
+                <dt>About</dt>
+                <dd><em>Proof By Example</em> is written by Mark Feeney.  I don't claim to know anything at all.</dd>
+                <dt>Follow</dt>
+                <dd>
+                  <a href="https://twitter.com/overthink">@overthink</a>,
+                  <a href="https://github.com/overthink">github</a>,
+                  <a href="http://stackoverflow.com/users/69689/overthink">stackoverflow</a>,
+                  <a href="http://www.linkedin.com/in/mfeeney">linkedin</a>,
+                  <a href="http://blog.markfeeney.com">old blog</a>
+                </dd>
+              </dl>
+            </p>
+            <p class="copyright text-center text-muted small">
+              Copyright &copy; 2013-2016 Mark Feeney.<br/>
+              <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/80x15.png" /></a> Non-commercial re-use with attribution encouraged; all other rights reserved.<br/>
+              Comments are the property of their respective posters.
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </footer>
 
-    <div id="footer-container" class="row-fluid">
-      <div class="span8 offset2">
-        <p>
-          <dl>
-            <dt>About</dt>
-            <dd><em>Proof By Example</em> is written by Mark Feeney.  I don't claim to know anything at all.</dd>
-            <dt>Follow</dt>
-            <dd>
-              <a href="https://twitter.com/overthink">@overthink</a>,
-              <a href="https://github.com/overthink">github</a>,
-              <a href="http://stackoverflow.com/users/69689/overthink">stackoverflow</a>,
-              <a href="https://plus.google.com/100830492822883367770?rel=author">Google</a>,
-              <a href="http://www.linkedin.com/in/mfeeney">linkedin</a>,
-              <a href="http://blog.markfeeney.com">old blog</a>
-            </dd>
-          </dl>
-        </p>
-        <p id="copyright">
-          Copyright &copy; 2013-2014 Mark Feeney.<br/>
-          Non-commercial re-use with attribution encouraged; all other rights reserved.<br/>
-          Comments are the property of respective posters.
-        </p>
-      </div>
-    </div>
+    <!-- jQuery necessary for Bootstrap's JavaScript plugins -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
   </body>
 </html>
