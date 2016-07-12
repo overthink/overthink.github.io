@@ -1,6 +1,6 @@
 meta:
     absolute_baseurl: http://proofbyexample.com
-pygments: true
+highlighter: rouge
 permalink: /:title.html
 markdown: kramdown
 exclude:
