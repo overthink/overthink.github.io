@@ -9,7 +9,7 @@ exists in part because I have worked with Scala for many years, and in Scala
 it's there's a very handy syntax for the "only act when a bunch of optional
 things are defined" situation.
 
-{% highlight scala %}
+```scala
 val x: Option[Int] = ...
 val y: Option[Int] = ...
 val z: Option[Int] = ...
@@ -20,7 +20,7 @@ val result =
     b <- y
     c <- z
   } yield a + b +c
-{% endhighlight %}
+```
 
 Here, `result` will be `None` unless all of `x`, `y`, `z` are defined.  This is
 a common idiom in Scala, and a nice one, IMO.
@@ -34,7 +34,7 @@ Scala has an `Either` type which seems appropriate.  I assumed I could
 usual.  It generally works that way, but there's a twist that took me a bunch
 of time to figure out.  Here's where I landed.
 
-{% highlight scala %}
+```scala
 val x: Option[Int] = Some(1)
 val y: Option[Int] = Some(2)
 val z: Option[Int] = None
@@ -64,7 +64,7 @@ result match {
 }
 
 // prints "Error, msg was 'z was None'" in this case.
-{% endhighlight %}
+```
 
 Confusingly to me, after converting the `Option` to a `Right` or `Left` you
 have to project it to a RightProjection (chosing Right vs Left is simply

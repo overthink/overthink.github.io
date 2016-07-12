@@ -46,10 +46,12 @@ The majority of this info comes from
 A URI is made up of five components.  So called "reserved characters" are used
 to separate the components from one another. From RFC3986:
 
+```text
      foo://example.com:8042/over/there?name=ferret#nose
      \_/   \______________/\_________/ \_________/ \__/
       |           |            |            |        |
     scheme     authority       path        query   fragment
+```
 
 The five components are scheme, authority, path, query, and fragment.  Some
 components can be broken into sub-components (my term).  For example the path
@@ -96,10 +98,10 @@ components having different reserved characters.  If you use the many-argument
 constructors for `URI`, the correct encoding rules are applied sometimes,
 depending on your data.
 
-{% highlight clojure %}
+```clojure
 (java.net.URI. "http" "user:password" "foo.com" 8080 "/foo/bar/a+b/c d/baz" "a=Mark's stuff&c=yo" "frag")
 ;; http://user:password@foo.com:8080/foo/bar/a+b/c%20d/baz?a=Mark's%20stuff&c=yo#frag
-{% endhighlight %}
+```
 
 * path looks good in this example
   * it did the right thing preserving the `+` and using `%20` for spaces

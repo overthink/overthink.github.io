@@ -28,7 +28,7 @@ The first issue I hit is that `pr` and its related helpers like `pr-str` will
 happily print anything, even if it has no hope of being read back in. e.g. A
 `org.joda.time.DateTime` object has no readable text form by default:
 
-{% highlight clojure %}
+```clojure
 (read-string (pr-str (org.joda.time.DateTime.)))
 ;; RuntimeException Unreadable form
 ;;         clojure.lang.Util.runtimeException (Util.java:219)
@@ -37,7 +37,7 @@ happily print anything, even if it has no hope of being read back in. e.g. A
 ;;         clojure.lang.LispReader.read (LispReader.java:185)
 ;;         clojure.lang.RT.readString (RT.java:1738)
 ;;         clojure.core/read-string (core.clj:3427)
-{% endhighlight %}
+```
 
 There's nothing special about `DateTime`, it's just my example.  No Java class
 (except a handful with special handling in Clojure) will have readable printed
@@ -51,7 +51,7 @@ functions boil down to calls to
 which calls the multimethod `print-method` in the usual case, or another
 multimethod `print-dup` if `*print-dup*` is true.  Here's the code:
 
-{% highlight clojure %}
+```clojure
 (defn pr-on
   {:private true
    :static true}
@@ -60,7 +60,7 @@ multimethod `print-dup` if `*print-dup*` is true.  Here's the code:
     (print-dup x w)
     (print-method x w))
   nil)
-{% endhighlight %}
+```
 
 `print-method` has an [implementation for
 `java.lang.Object`](https://github.com/clojure/clojure/blob/201a0dd9701e1a0ee3998431241388eb4a854ebf/src/clj/clojure/core_print.clj#L101-L102),
@@ -70,29 +70,29 @@ explicitly know about.  This is what I wanted: if it won't be readable, blow
 up.  (Note my reasonable? assumption here that if a type has a `print-dup` implementation
 that it will be readable.)
 
-{% highlight clojure %}
+```clojure
 (binding [*print-dup* true] (pr-str (org.joda.time.DateTime.)))
 ;; IllegalArgumentException No method in multimethod 'print-dup' for dispatch value:
 ;; class org.joda.time.DateTime  clojure.lang.MultiFn.getFn (MultiFn.java:160)
-{% endhighlight %}
+```
 
 This is great, except that to be useful -- at least for me -- certain non-Clojure
 objects, like joda's `DateTime` need to work with the cache.  Since `print-dup`
 is a multimethod, we can easily extend it for our uses.
 
-{% highlight clojure %}
+```clojure
 ;; Make it possible to print joda DateTime instances; required for caching.
 (defmethod print-dup org.joda.time.DateTime
   [dt out]
   (.write out (str "#=" `(DateTime. ~(.getMillis dt)))))
-{% endhighlight %}
+```
 
 Now the following works:
 
-{% highlight clojure %}
+```clojure
 (binding [*print-dup* true] (pr-str (org.joda.time.DateTime.)))
 "#=(org.joda.time.DateTime. 1395949236863)"
-{% endhighlight %}
+```
 
 ## \*read-eval\*
 
@@ -116,10 +116,10 @@ Things appear to be printing.  Now for the read side.
 Most of the complexity I encountered was on the print side, so reading is
 pretty easy: just make sure `*read-eval*` is set:
 
-{% highlight clojure %}
+```clojure
 (binding [*read-eval* true] (read-string (pr-str org.joda.time.DateTime.)))
 ;; #<DateTime 2014-03-27T15:40:36.863-04:00>
-{% endhighlight %}
+```
 
 ## y u do dis struct-map?
 
@@ -128,9 +128,9 @@ started using it.  Right away things blew up: `IllegalArgumentException No
 matching method found: create`.  WTF?  Looking at the cached data I saw tons of
 this sort of thing:
 
-{% highlight clojure %}
+```clojure
 #=(clojure.lang.PersistentStructMap/create {:a 1, :b 2})
-{% endhighlight %}
+```
 
 [`struct-map`s](http://clojure.org/data_structures#Data%20Structures-StructMaps).
 Old, and largely replaced by records.  Who the hell uses struct maps?  I
@@ -148,13 +148,13 @@ I found an easy work-around, and while it's not really in the
 spirit of `print-dup`, it works for me: convert struct maps to regular maps
 before printing:
 
-{% highlight clojure %}
+```clojure
 ;; Convert struct maps into something readable before printing
 ;; http://dev.clojure.org/jira/browse/CLJ-176
 (defmethod print-dup clojure.lang.PersistentStructMap
   [m out]
   (print-dup (into {} m) out))
-{% endhighlight %}
+```
 
 I don't know if there are more instances of this type of thing (printable with
 print-dup, but not readable); I haven't found any yet.  This cache doesn't see

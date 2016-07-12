@@ -9,8 +9,7 @@ few times over the years, and just did so again.
 
 The working example will be a hack implementation of [`range`](https://clojuredocs.org/clojure.core/range).
 
-{% highlight clojure %}
-
+```clojure
 (defn range-so
   "Will blow stack."
   ([end] (range-so 0 end))
@@ -20,8 +19,7 @@ The working example will be a hack implementation of [`range`](https://clojuredo
 
 ;; (range-so 10000)
 ;; StackOverflowError   clojure.lang.Numbers$LongOps.inc (Numbers.java:529)
-
-{% endhighlight %}
+```
 
 `range-so` is the naive recursive implementation that consumes stack and is not
 useful for ranges with more than a few thousand entries.  It's also eager, so
@@ -31,8 +29,7 @@ just the first two elements.
 Clojure provides `recur` for non-stack-consuming "recursion", so that will solve
 the `StackOverflowError`:
 
-{% highlight clojure %}
-
+```clojure
 (defn range-recur
   "Won't blow stack due to recur."
   ([end] (range-recur [] 0 end))
@@ -44,8 +41,8 @@ the `StackOverflowError`:
 
 ;; (range-recur 10000)
 ;; [0 1 .. 9998 9999]
+```
 
-{% endhighlight %}
 
 `range-recur` is also eager, so again `(take 2 (range-recur 1000)` realizes the
 whole range before returning only the first two items.
@@ -56,8 +53,7 @@ can just wrap your seq-bearing expressions in `lazy-seq` and you're set.  One
 caveat: don't blindly wrap code using `recur` with `lazy-seq` of you'll get
 potentially surprising errors:
 
-{% highlight clojure %}
-
+```clojure
 (defn range-lazy-busted
   "Won't compile."
   ([end] (range-recur [] 0 end))
@@ -69,8 +65,7 @@ potentially surprising errors:
        acc))))
 
 ;; IllegalArgumentException: Mismatched argument count to recur, expected: 0 args, got: 3
-
-{% endhighlight %}
+```
 
 The reason for this is obvious when you realize that `lazy-seq` is just a macro
 that wraps its contents in `(new clojure.lang.LazySeq (fn* [] ...)`.  The
@@ -81,8 +76,7 @@ recursion.
 
 Here's the fully lazy version:
 
-{% highlight clojure %}
-
+```clojure
 (defn range-lazy
   "Won't blow the stack due to lazy-seq."
   ([end] (range-lazy 0 end))
@@ -93,8 +87,7 @@ Here's the fully lazy version:
 
 ;; (range-lazy 10000)
 ;; (0 1 .. 9998 9999)
-
-{% endhighlight %}
+```
 
 tl;dr - Recursive-looking self-calls ok when wrapped in `lazy-seq`.
 

@@ -9,7 +9,7 @@ published: true
 I recently came across some [suspicious code in Square's
 Okio](https://github.com/square/okio/blob/c200cb65ddf37fc4d11c01205ae1dd1eaf5f1136/okio/src/main/java/okio/Util.java#L64):
 
-{% highlight java %}
+```java
 final class Util {
   /**
    * Throws {@code t}, even if the declared throws clause doesn't permit it.
@@ -25,7 +25,7 @@ final class Util {
     throw (T) t;
   }
 }
-{% endhighlight %}
+```
 
 Their comment admits it's nuts, and points to [Java
 Puzzlers](http://www.amazon.com/Java%C2%BF-Puzzlers-Traps-Pitfalls-Corner/dp/032133678X),
@@ -38,7 +38,7 @@ Checked exceptions are a huge pain, but outright circumvention seems extreme.
 
 Here's some code illustrating what `sneakyRethrow` allows one to do:
 
-{% highlight java %}
+```java
 import java.io.IOException;
 
 class Test {
@@ -84,7 +84,7 @@ class Test {
     System.out.println("done");
   }
 }
-{% endhighlight %}
+```
 
 This compiles, but the downcast `throw (Error) t;` line in `doesntWork` isn't
 safe for most cases.  There's no guarantee you can cast an arbitrary
@@ -110,7 +110,7 @@ exceptions are only part of Java, not the JVM__.  They're only enforced by the
 compiler.  In bytecode you can happily throw any exception from anywhere,
 without restrictions.  Time to look at the bytecode (via `javap -c Test`):
 
-{% highlight java %}
+```text
     public static <T extends java/lang/Throwable> void sneakyRethrow2(java.lang.Throwable) throws T;
       Code:
          0: aload_0
@@ -127,7 +127,7 @@ without restrictions.  Time to look at the bytecode (via `javap -c Test`):
          0: aload_0
          1: checkcast     #3                  // class java/lang/Error
          4: athrow
-{% endhighlight %}
+```
 
 Looking at this bytecode it's obvious why `doesntWork` causes a
 `ClassCastException` but `sneakyRethrow` doesn't: there's no `checkcast`
@@ -151,7 +151,7 @@ explained in this [Android platform
 code](https://android.googlesource.com/platform/libcore/+/jb-mr2-release/luni/src/main/java/libcore/util/SneakyThrow.java).
 I'll reproduce here for posterity:
 
-{% highlight java %}
+```java
 // The following code must enumerate several types to rethrow:
 public void close() throws IOException {
     Throwable thrown = null;
@@ -177,7 +177,7 @@ public void close() throws IOException {
         SneakyThrow.sneakyThrow(thrown);
     }
 }
-{% endhighlight %}
+```
 
 So, like the comment in Okio says, using this in cleanup code is pretty
 convenient.  Neat hack.
