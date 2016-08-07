@@ -13,12 +13,13 @@ project started with [TypeScript](https://www.typescriptlang.org/) 2.0 and
 
 I want to do a graphics thing and the browser is the natural target these days.
 Pixi.js is an impressive looking 2d renderer that seems relatively small and is
-widely used.  TypeScript in order to add basic sanity to JavaScript.
-TypeScript **2.0** for non-nullable types (finally). Webpack... well, I have
-not been much of a JS/node.js/npm person in the past, so I'm not really sure
-what I'm doing here.  However, in my flailing around in this enormous ecosystem
-it seems that Webpack is a relatively sane way to get apps developed with
-node.js running in the browser.  If nothing else it seems to be very popular.
+widely used.  I want TypeScript in order to add basic sanity to JavaScript.  I
+want TypeScript **2.0** for non-nullable types (finally). Webpack... well, I
+have not been much of a JS/node.js/npm person in the past, so I'm not really
+sure what I'm doing here.  However, in my flailing around in this enormous
+ecosystem it seems that Webpack is a relatively sane way to get apps developed
+with node.js running in the browser.  If nothing else it seems to be very
+popular.
 
 ## Prerequisites
 
