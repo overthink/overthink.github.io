@@ -264,6 +264,10 @@ Start a web server in the project dir (I use `python -m SimpleHTTPServer`) and
 check out index.html in the browser.  You should have a little pixi.js rabbit
 rotating on a blue background.
 
+## Code
+
+All the code described here is available at <https://github.com/overthink/pixitest>
+
 ## <a name="q"></a>Open question
 
 Why don't we `npm install --save-dev typescript@beta`?  We have to do it for
