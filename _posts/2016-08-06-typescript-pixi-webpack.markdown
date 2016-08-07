@@ -18,8 +18,8 @@ want TypeScript **2.0** for non-nullable types (finally). Webpack... well, I
 have not been much of a JS/node.js/npm person in the past, so I'm not really
 sure what I'm doing here.  However, in my flailing around in this enormous
 ecosystem it seems that Webpack is a relatively sane way to get apps developed
-with node.js running in the browser.  If nothing else it seems to be very
-popular.
+using node.js to run stand-alone in the browser.  If nothing else it seems to
+be very popular.
 
 ## Prerequisites
 
