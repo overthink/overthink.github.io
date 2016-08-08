@@ -9,6 +9,10 @@ This article describes how to get a minimal [pixi.js](http://www.pixijs.com/)
 project started with [TypeScript](https://www.typescriptlang.org/) 2.0 and
 [Webpack](https://webpack.github.io/).
 
+## Code
+
+The working skeleton project is available at <https://github.com/overthink/pixitest>
+
 ## Why?
 
 I want to do a graphics thing and the browser is the natural target these days.
@@ -16,7 +20,7 @@ Pixi.js is an impressive looking 2d renderer that seems relatively small and is
 widely used.  I want TypeScript in order to add basic sanity to JavaScript.  I
 want TypeScript **2.0** for non-nullable types (finally). Webpack... well, I
 have not been much of a JS/node.js/npm person in the past, so I'm not really
-sure what I'm doing here.  However, in my flailing around in this enormous
+sure what I'm doing here.  However, from my flailing around in this enormous
 ecosystem it seems that Webpack is a relatively sane way to get apps developed
 using node.js to run stand-alone in the browser.  If nothing else it seems to
 be very popular.
@@ -52,7 +56,16 @@ Setup the project directories.
 ```text
 mkdir pixitest
 cd pixitest
-mkdir src dist
+mkdir src dist externals
+```
+
+Put a minified version of pixi.js into the externals directory.  We do this to
+avoid having Webpack bundle the entire 1MB pixi library into our app's .js
+file (more below).
+
+```text
+curl https://github.com/pixijs/pixi.js/releases/download/v3.0.10/pixi.min.js > \
+  externals/pixi.min.js
 ```
 
 Initialize the `npm` project.  Accept defaults for all prompts _except_ "entry
@@ -71,31 +84,22 @@ Add pixi.js as a dependency for the project.
 npm install --save pixi.js
 ```
 
-Add Webpack as a dev dependency for the project  Earlier we installed it
-globally.  Now we install it locally because the `source-map-loader` (coming
-up) won't work if we don't.  I don't fully grok this.  See [open question](#q).
+Add Webpack and related dev dependencies.
 
 ```text
-npm install --save-dev webpack
+npm install --save-dev webpack ts-loader source-map-loader brfs transform-loader
 ```
 
-Add a few development dependencies that allow TypeScript and Webpack to work
-together.  `ts-loader` helps Webpack compile TypeScript files.
-`source-map-loader` uses source maps coming out of TypeScript to inform its own
-source maps. I'm impressed that this is possible.
+Module | WTF
+------ | ---
+`webpack` | Earlier we installed this globally. Now we install it locally because `source-map-loader` won't work if we don't. Strangely, other docs out there suggest we don't need to have Webpack as a dev dependency, but that seems wrong to me. Webpack is required to "build" this project, seems it should be a listed dependency (see  [open question](#q)).
+`ts-loader` | Helps Webpack compile TypeScript files.
+`brfs` | pixi.js expects us to be using Browserify, but we're not. Fortunately Browserify's `fs` transforming module is available a la carte, and we use it here.
+`transform-loader` | Used by Webpack to get `brfs` to work. I'm out of my depth on this one.
+{:.table .table-bordered}
 
-```text
-npm install --save-dev ts-loader source-map-loader
-```
-
-Now some dependencies to get pixi.js and Webpack to work together.
-
-```text
-npm install --save-dev brfs transform-loader
-```
-
-Add TypeScript to this project. Earlier we installed it globally, so we'll
-just link that install to our project. See [open question](#q).
+Add TypeScript to this project. Earlier we installed it globally, so we'll just
+link that install to our project. See [open question](#q).
 
 ```text
 npm link typescript
@@ -105,6 +109,18 @@ Use `typings` to get the type info for pixi.js.
 
 ```text
 typings install --global --save-dev dt~pixi.js
+```
+
+This creates a Typings config file called `typings.json`.  In the future
+someone can just clone the repo and run `typings install` to get the type
+definitions mentioned in this file.  It should look roughly like this now:
+
+```json
+{
+  "globalDevDependencies": {
+    "pixi.js": "registry:dt/pixi.js#3.0.9+20160705114540"
+  }
+}
 ```
 
 At this point, `package.json` should look roughly like this:
@@ -166,6 +182,7 @@ Create a skeleton index.html page in the project root to host our app.
         <title>Hello World, Pixi!</title>
     </head>
     <body>
+        <script src="./externals/pixi.min.js"></script>
         <script src="./dist/bundle.js"></script>
     </body>
 </html>
@@ -174,7 +191,7 @@ Create a skeleton index.html page in the project root to host our app.
 Now we actually write some code!  Call this file `./src/helloworld.ts`
 
 ```javascript
-import PIXI = require('pixi.js');
+import * as PIXI from 'pixi.js';
 
 var renderer = PIXI.autoDetectRenderer(800, 600, {backgroundColor: 0x1099bb});
 document.body.appendChild(renderer.view);
@@ -215,7 +232,7 @@ module.exports = {
 
     resolve: {
         // Add '.ts' as resolvable extensions.
-        extensions: ["", ".webpack.js", ".web.js", ".ts", ".js"]
+        extensions: ["", ".ts", ".js"]
     },
 
     module: {
@@ -227,52 +244,48 @@ module.exports = {
         loaders: [
             // All files with a '.ts' extension will be handled by 'ts-loader'.
             { test: /\.ts$/, loader: "ts-loader" },
-            // Pixi apparently needs to read its package.json file, so we tell webpack
-            // how to load these.
-            { test: /\.json$/, loader: "json" }
         ],
 
         // Pixi expects people to be using Browserify. We're not, but we still can use
-        // its brfs module to deal with pixi code using "fs".
+        // its brfs module to deal with pixi code using "fs". 
         postLoaders: [
           { include: path.resolve(__dirname, "node_modules/pixi.js"), loader: "transform?brfs" }
         ]
     },
+
+    externals: [
+        // Don't bundle pixi.js, assume it'll be included in the HTML via a script
+        // tag, and made available in the global variable PIXI.
+        {"pixi.js": "PIXI"}
+    ]
+
 };
 ```
 
 ## Try it
 
-Run `webpack` in the root of the project.
+Run the `webpack` command in the root of the project.
 
 ```text
 $ webpack
-ts-loader: Using typescript@2.0.0 and /home/mark/pixitest/tsconfig.json
-Hash: 7bd716353f96e5ace42c
+ts-loader: Using typescript@2.0.0 and /home/mark/dev/pixitest/tsconfig.json
+Hash: a1860189d2d608061ed0
 Version: webpack 1.13.1
-Time: 5256ms
+Time: 2076ms
                Asset     Size  Chunks             Chunk Names
-    ./dist/bundle.js  1.03 MB       0  [emitted]  main
-./dist/bundle.js.map  1.23 MB       0  [emitted]  main
-    + 137 hidden modules
+    ./dist/bundle.js  2.24 kB       0  [emitted]  main
+./dist/bundle.js.map  3.23 kB       0  [emitted]  main
+    + 2 hidden modules
 ```
 
-This command does a lot of work, most of which, I think, is assembling pixi.js
-for the browser.  I believe this can be reduced significantly through better
-Webpack config.
-
-Start a web server in the project dir (I use `python -m SimpleHTTPServer`) and
-check out index.html in the browser.  You should have a little pixi.js rabbit
-rotating on a blue background.
-
-## Code
-
-All the code described here is available at <https://github.com/overthink/pixitest>
+Start a web server in the project directory (I use `python -m
+SimpleHTTPServer`) and check out index.html in the browser.  You should have a
+little pixi.js rabbit rotating on a blue background.
 
 ## <a name="q"></a>Open question
 
-Why don't we `npm install --save-dev typescript@beta`?  We have to do it for
-`webpack`.  We install TypeScript globally and then just assume people
+Why don't we `npm install --save-dev typescript@beta`?  We seem to have to do
+it for `webpack`.  We install TypeScript globally and then just assume people
 have them on their systems?  Seems wrong to me.  I'd prefer a model where you
 clone a repo, type `npm install` and you get _everything_ you need.  Is this
 not how it works in JS-land?  If you can explain this to me, I'd be grateful.
@@ -283,4 +296,5 @@ not how it works in JS-land?  If you can explain this to me, I'd be grateful.
 * <http://www.jbrantly.com/typescript-and-webpack/>
 * <https://www.typescriptlang.org/docs/handbook/react-&-webpack.html>
 * <https://gist.github.com/overthink/e13829adc2bf3574dedfeef11e635f05>
+* <http://webpack.github.io/docs/library-and-externals.html>
 
