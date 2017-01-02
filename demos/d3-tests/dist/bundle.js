@@ -50,11 +50,13 @@
 	var rp = __webpack_require__(3);
 	var tri = __webpack_require__(4);
 	var rt = __webpack_require__(6);
+	var ta = __webpack_require__(7);
 	// ideally I'd enumerate these programmatically
 	var examples = immutable.Map({
 	    "random-points": { title: "Random points", run: rp.main },
 	    "triangles": { title: "Triangles", run: tri.main },
-	    "rotating-triangle": { title: "Rotating Triangle", run: rt.main }
+	    "rotating-triangle": { title: "Rotating Triangle", run: rt.main },
+	    "timer-animation": { title: "Use d3.timer() to animate", run: ta.main }
 	});
 	var defaultExample = examples.valueSeq().first();
 	/**
@@ -265,6 +267,38 @@
 	            .on("end", repeat); // restart the transition as soon as it ends
 	    }
 	    repeat();
+	}
+	exports.main = main;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var d3 = __webpack_require__(1);
+	function main() {
+	    var svg = d3.select("svg");
+	    var width = +svg.attr("width");
+	    var height = +svg.attr("height");
+	    var r = 50;
+	    svg.append("circle")
+	        .attr("cx", r)
+	        .attr("cy", Math.floor(height / 2))
+	        .attr("r", r)
+	        .attr("fill", "darkorange");
+	    var x = d3.scaleLinear().domain([-1, 1]).range([r, width - r]);
+	    var start = 0;
+	    function move() {
+	        var circle = svg.select("circle");
+	        start += 0.02;
+	        circle.attr("cx", x(-Math.cos(start)));
+	    }
+	    // const t = d3.timer(e => {
+	    //     move(e);
+	    //     if (e > 30000) t.stop();
+	    // });
+	    d3.timer(move);
 	}
 	exports.main = main;
 
