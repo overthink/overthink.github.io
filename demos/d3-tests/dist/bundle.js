@@ -224,7 +224,7 @@
 	    if (result === null) {
 	        throw "Expected string result";
 	    }
-	    return result + ",Z"; // force close the path, d3 only does this if fill is non-none
+	    return result + "Z"; // force close the path, d3 only does this if fill is non-none
 	}
 	exports.shapePathData = shapePathData;
 
@@ -287,17 +287,12 @@
 	        .attr("cy", Math.floor(height / 2))
 	        .attr("r", r)
 	        .attr("fill", "darkorange");
-	    var x = d3.scaleLinear().domain([-1, 1]).range([r, width - r]);
-	    var start = 0;
-	    function move() {
-	        var circle = svg.select("circle");
-	        start += 0.02;
-	        circle.attr("cx", x(-Math.cos(start)));
+	    var circle = svg.select("circle");
+	    function move(elapsed) {
+	        // y = -cos(x)/2 + 0.5 gives nice oscillating output on [0, 1]
+	        var fraction = -Math.cos(elapsed / 1000) / 2 + 0.5;
+	        circle.attr("cx", r + (fraction * (width - 2 * r)));
 	    }
-	    // const t = d3.timer(e => {
-	    //     move(e);
-	    //     if (e > 30000) t.stop();
-	    // });
 	    d3.timer(move);
 	}
 	exports.main = main;
