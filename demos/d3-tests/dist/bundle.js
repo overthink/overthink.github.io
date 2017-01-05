@@ -51,12 +51,14 @@
 	var tri = __webpack_require__(4);
 	var rt = __webpack_require__(6);
 	var ta = __webpack_require__(7);
+	var m = __webpack_require__(8);
 	// ideally I'd enumerate these programmatically
 	var examples = immutable.Map({
 	    "random-points": { title: "Random points", run: rp.main },
 	    "triangles": { title: "Triangles", run: tri.main },
 	    "rotating-triangle": { title: "Rotating Triangle", run: rt.main },
-	    "timer-animation": { title: "Use d3.timer() to animate", run: ta.main }
+	    "timer-animation": { title: "Use d3.timer() to animate", run: ta.main },
+	    "mouse": { title: "Do stuff with the mouse", run: m.main }
 	});
 	var defaultExample = examples.valueSeq().first();
 	/**
@@ -294,6 +296,54 @@
 	        circle.attr("cx", r + (fraction * (width - 2 * r)));
 	    }
 	    d3.timer(move);
+	}
+	exports.main = main;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var d3 = __webpack_require__(1);
+	function main() {
+	    var svg = d3.select("svg");
+	    var width = +svg.attr("width");
+	    var height = +svg.attr("height");
+	    var data = [];
+	    function render() {
+	        var circles = svg.selectAll("circle")
+	            .data(data, function (d) { return d.birthday.toString(); });
+	        circles.enter()
+	            .append("circle")
+	            .attr("cx", function (d) { return d.point[0]; })
+	            .attr("cy", function (d) { return d.point[1]; })
+	            .attr("r", 20)
+	            .transition()
+	            .duration(2000)
+	            .style("opacity", 0);
+	        circles.exit()
+	            .remove();
+	    }
+	    // delete data points that are too old
+	    function reap() {
+	        for (var i = data.length - 1; i >= 0; i--) {
+	            var age = Date.now() - data[i].birthday;
+	            if (age > 3000)
+	                data.splice(i, 1);
+	        }
+	    }
+	    function update() {
+	        reap();
+	        render();
+	    }
+	    svg.on("click", function () {
+	        var coords = d3.mouse(d3.event.currentTarget);
+	        data.push({ point: coords, birthday: Date.now() });
+	        render();
+	    });
+	    update();
+	    d3.interval(update, 2000);
 	}
 	exports.main = main;
 
