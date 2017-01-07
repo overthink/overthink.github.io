@@ -46,20 +46,22 @@
 
 	"use strict";
 	var d3 = __webpack_require__(1);
-	var immutable = __webpack_require__(2);
-	var rp = __webpack_require__(3);
-	var tri = __webpack_require__(4);
-	var rt = __webpack_require__(6);
-	var ta = __webpack_require__(7);
-	var m = __webpack_require__(8);
-	// ideally I'd enumerate these programmatically
-	var examples = immutable.Map({
-	    "random-points": { title: "Random points", run: rp.main },
-	    "triangles": { title: "Triangles", run: tri.main },
-	    "rotating-triangle": { title: "Rotating Triangle", run: rt.main },
-	    "timer-animation": { title: "Use d3.timer() to animate", run: ta.main },
-	    "mouse": { title: "Do stuff with the mouse", run: m.main }
-	});
+	var i = __webpack_require__(2);
+	var randomPoints_1 = __webpack_require__(3);
+	var mouse_1 = __webpack_require__(4);
+	var triangles_1 = __webpack_require__(5);
+	var rotatingTriangle_1 = __webpack_require__(7);
+	var timerAnimation_1 = __webpack_require__(8);
+	// ideally I'd enumerate these programmatically somehow
+	var exampleList = [
+	    new randomPoints_1.RandomPoints(),
+	    new triangles_1.Triangles(),
+	    new rotatingTriangle_1.RotatingTriangle(),
+	    new timerAnimation_1.TimerAnimation(),
+	    new mouse_1.Mouse()
+	];
+	var examples = exampleList
+	    .reduce(function (acc, ex) { return acc.set(ex.slug, ex); }, i.Map());
 	var defaultExample = examples.valueSeq().first();
 	/**
 	 * Return the value of `selected` from the query string, or undefined if we
@@ -71,7 +73,7 @@
 	    return result === null ? undefined : result[1];
 	}
 	var selected = getSelected(window.location.search) || "random-points";
-	examples.get(selected, defaultExample).run();
+	examples.get(selected, defaultExample).start();
 	// Make a clickable list of examples
 	d3.select("ul.examples-list").selectAll("li")
 	    .data(examples.entrySeq().toArray())
@@ -111,18 +113,23 @@
 
 	"use strict";
 	var d3 = __webpack_require__(1);
-	function main() {
-	    var svg = d3.select("svg");
-	    var width = +svg.attr("width");
-	    var height = +svg.attr("height");
-	    var xRandom = d3.randomUniform(0, width);
-	    var yRandom = d3.randomUniform(0, height);
-	    function generatePoints() {
-	        return d3.range(Math.random() * 50)
-	            .map(function () { return [xRandom(), yRandom()]; });
+	var RandomPoints = (function () {
+	    function RandomPoints() {
+	        this.svg = d3.select("svg");
+	        this.width = +this.svg.attr("width");
+	        this.height = +this.svg.attr("height");
+	        this.xRandom = d3.randomUniform(0, this.width);
+	        this.yRandom = d3.randomUniform(0, this.height);
+	        this.slug = "random-points";
+	        this.title = "animated random points";
 	    }
-	    function update(points) {
-	        var circles = svg.selectAll("circle").data(points);
+	    RandomPoints.prototype.generatePoints = function () {
+	        var _this = this;
+	        return d3.range(Math.random() * 50)
+	            .map(function () { return [_this.xRandom(), _this.yRandom()]; });
+	    };
+	    RandomPoints.prototype.update = function (points) {
+	        var circles = this.svg.selectAll("circle").data(points);
 	        // create any new circles
 	        circles
 	            .enter()
@@ -147,13 +154,17 @@
 	            .transition()
 	            .attr("r", 0)
 	            .remove();
-	    }
-	    update(generatePoints());
-	    d3.interval(function () {
-	        update(generatePoints());
-	    }, 3000);
-	}
-	exports.main = main;
+	    };
+	    RandomPoints.prototype.start = function () {
+	        var _this = this;
+	        this.update(this.generatePoints());
+	        d3.interval(function () {
+	            _this.update(_this.generatePoints());
+	        }, 3000);
+	    };
+	    return RandomPoints;
+	}());
+	exports.RandomPoints = RandomPoints;
 
 
 /***/ },
@@ -162,16 +173,86 @@
 
 	"use strict";
 	var d3 = __webpack_require__(1);
-	var common_1 = __webpack_require__(5);
-	function main() {
-	    var svg = d3.select("svg");
-	    var width = +svg.attr("width");
-	    var height = +svg.attr("height");
+	var Mouse = (function () {
+	    function Mouse() {
+	        this.svg = d3.select("svg");
+	        this.width = +this.svg.attr("width");
+	        this.height = +this.svg.attr("height");
+	        this.data = [];
+	        // Track if we should be drawing right now (i.e. mousedown or touchstart)
+	        this.drawing = false;
+	        this.title = "Draw with the mouse our touching the screen";
+	        this.slug = "mouse";
+	    }
+	    Mouse.prototype.render = function () {
+	        var circles = this.svg.selectAll("circle")
+	            .data(this.data, function (d) { return d.birthday.toString(); });
+	        circles.enter()
+	            .append("circle")
+	            .attr("cx", function (d) { return d.point[0]; })
+	            .attr("cy", function (d) { return d.point[1]; })
+	            .attr("r", 20)
+	            .transition()
+	            .duration(2000)
+	            .style("opacity", 0);
+	        circles.exit()
+	            .remove();
+	    };
+	    Mouse.prototype.drawCircle = function (coords) {
+	        this.data.push({ point: coords, birthday: Date.now() });
+	        this.render();
+	    };
+	    // delete data points that are too old
+	    Mouse.prototype.reap = function () {
+	        for (var i = this.data.length - 1; i >= 0; i--) {
+	            var age = Date.now() - this.data[i].birthday;
+	            if (age > 3000)
+	                this.data.splice(i, 1);
+	        }
+	    };
+	    ;
+	    Mouse.prototype.start = function () {
+	        var _this = this;
+	        this.svg.on("mousedown touchstart", function () {
+	            d3.event.preventDefault(); // don't let the touch scroll the viewport on mobile
+	            _this.drawing = true;
+	            _this.drawCircle(d3.mouse(d3.event.currentTarget));
+	        });
+	        this.svg.on("mouseup touchend", function () {
+	            _this.drawing = false;
+	        });
+	        this.svg.on("mousemove touchmove", function () {
+	            if (_this.drawing) {
+	                _this.drawCircle(d3.mouse(d3.event.currentTarget));
+	            }
+	        });
+	        d3.interval(function () { return _this.reap(); }, 2000);
+	    };
+	    return Mouse;
+	}());
+	exports.Mouse = Mouse;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var d3 = __webpack_require__(1);
+	var common_1 = __webpack_require__(6);
+	var Triangles = (function () {
+	    function Triangles() {
+	        this.svg = d3.select("svg");
+	        this.width = +this.svg.attr("width");
+	        this.height = +this.svg.attr("height");
+	        this.slug = "triangles";
+	        this.title = "A bunch of triangles with a colour scale";
+	    }
 	    /**
 	     * Given a seed shape, return a sequence of shapes that tile a width x height
 	     * area. Yes, this could be done with svg:pattern ...
 	     */
-	    function tile(width, height, seed) {
+	    Triangles.prototype.tile = function (width, height, seed) {
 	        // get the width and height of the bounding box of the seed shape (assume
 	        // (0, 0) is the top-left of seed shape)
 	        var seedW = d3.max(seed, function (p) { return p[0]; });
@@ -193,24 +274,27 @@
 	            _loop_1(i);
 	        }
 	        return result;
-	    }
-	    var blend = d3.interpolateRgb("steelblue", "orange");
-	    var seed = [[10, 10], [60, 10], [10, 60]];
-	    var shapes = tile(width, height, seed);
-	    svg.selectAll("path")
-	        .data(shapes)
-	        .enter()
-	        .append("path")
-	        .attr("d", function (t) { return common_1.shapePathData(t); })
-	        .attr("fill", function (_, i) { return blend(i / shapes.length); })
-	        .attr("stroke", "black")
-	        .attr("stroke-width", "3");
-	}
-	exports.main = main;
+	    };
+	    Triangles.prototype.start = function () {
+	        var blend = d3.interpolateRgb("steelblue", "orange");
+	        var seed = [[10, 10], [60, 10], [10, 60]];
+	        var shapes = this.tile(this.width, this.height, seed);
+	        this.svg.selectAll("path")
+	            .data(shapes)
+	            .enter()
+	            .append("path")
+	            .attr("d", function (t) { return common_1.shapePathData(t); })
+	            .attr("fill", function (_, i) { return blend(i / shapes.length); })
+	            .attr("stroke", "black")
+	            .attr("stroke-width", "3");
+	    };
+	    return Triangles;
+	}());
+	exports.Triangles = Triangles;
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -232,72 +316,52 @@
 
 
 /***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var d3 = __webpack_require__(1);
-	var common_1 = __webpack_require__(5);
-	function main() {
-	    d3.select("head").append("style").text("\n    .triangle {\n        fill: slategrey;\n        stroke: black;\n        stroke-width: 2;\n    }\n    ");
-	    var svg = d3.select("svg");
-	    var width = +svg.attr("width");
-	    var height = +svg.attr("height");
-	    var centre = [Math.floor(width / 2), Math.floor(height / 2)];
-	    var svgGroup = svg
-	        .append("g")
-	        .attr("transform", "translate(" + centre[0] + ", " + centre[1] + ")"); // (0,0) in the middle
-	    // mark the centre point
-	    svgGroup.append("circle")
-	        .attr("cx", 0)
-	        .attr("cy", 0)
-	        .attr("r", 2)
-	        .style("fill", "#ccc");
-	    console.log("in rotatingTriangle.ts");
-	    var offset = 100;
-	    var seed = [[0, offset], [0, 80 + offset], [-40, 80 + offset]];
-	    var rotateFn = function () { return d3.interpolateString("rotate(0, 0, 0)", "rotate(360, 0, 0)"); };
-	    var triangle = svgGroup.append("path")
-	        .attr("class", "triangle")
-	        .attr("d", common_1.shapePathData(seed));
-	    function repeat() {
-	        triangle
-	            .transition()
-	            .duration(5000)
-	            .ease(d3.easeLinear)
-	            .attrTween("transform", rotateFn)
-	            .on("end", repeat); // restart the transition as soon as it ends
-	    }
-	    repeat();
-	}
-	exports.main = main;
-
-
-/***/ },
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	var d3 = __webpack_require__(1);
-	function main() {
-	    var svg = d3.select("svg");
-	    var width = +svg.attr("width");
-	    var height = +svg.attr("height");
-	    var r = 50;
-	    svg.append("circle")
-	        .attr("cx", r)
-	        .attr("cy", Math.floor(height / 2))
-	        .attr("r", r)
-	        .attr("fill", "darkorange");
-	    var circle = svg.select("circle");
-	    function move(elapsed) {
-	        // y = -cos(x)/2 + 0.5 gives nice oscillating output on [0, 1]
-	        var fraction = -Math.cos(elapsed / 1000) / 2 + 0.5;
-	        circle.attr("cx", r + (fraction * (width - 2 * r)));
+	var common_1 = __webpack_require__(6);
+	var RotatingTriangle = (function () {
+	    function RotatingTriangle() {
+	        this.svg = d3.select("svg");
+	        this.width = +this.svg.attr("width");
+	        this.height = +this.svg.attr("height");
+	        this.centre = [Math.floor(this.width / 2), Math.floor(this.height / 2)];
+	        this.offset = 100;
+	        this.seed = [[0, this.offset], [0, 80 + this.offset], [-40, 80 + this.offset]];
+	        this.rotateFn = function () { return d3.interpolateString("rotate(0, 0, 0)", "rotate(360, 0, 0)"); };
+	        this.slug = "rotating-triangle";
+	        this.title = "Rotating triangle using repeating transition";
 	    }
-	    d3.timer(move);
-	}
-	exports.main = main;
+	    RotatingTriangle.prototype.animate = function () {
+	        var _this = this;
+	        this.svg.select(".triangle")
+	            .transition()
+	            .duration(5000)
+	            .ease(d3.easeLinear)
+	            .attrTween("transform", this.rotateFn)
+	            .on("end", function () { return _this.animate(); }); // restart the transition as soon as it ends
+	    };
+	    RotatingTriangle.prototype.start = function () {
+	        d3.select("head").append("style").text("\n        .triangle {\n            fill: slategrey;\n            stroke: black;\n            stroke-width: 2;\n        }\n        ");
+	        var svgGroup = this.svg
+	            .append("g")
+	            .attr("transform", "translate(" + this.centre[0] + ", " + this.centre[1] + ")"); // (0,0) in the middle
+	        // mark the centre point
+	        svgGroup.append("circle")
+	            .attr("cx", 0)
+	            .attr("cy", 0)
+	            .attr("r", 2)
+	            .style("fill", "#ccc");
+	        svgGroup.append("path")
+	            .attr("class", "triangle")
+	            .attr("d", common_1.shapePathData(this.seed));
+	        this.animate();
+	    };
+	    return RotatingTriangle;
+	}());
+	exports.RotatingTriangle = RotatingTriangle;
 
 
 /***/ },
@@ -306,46 +370,33 @@
 
 	"use strict";
 	var d3 = __webpack_require__(1);
-	function main() {
-	    var svg = d3.select("svg");
-	    var width = +svg.attr("width");
-	    var height = +svg.attr("height");
-	    var data = [];
-	    function render() {
-	        var circles = svg.selectAll("circle")
-	            .data(data, function (d) { return d.birthday.toString(); });
-	        circles.enter()
-	            .append("circle")
-	            .attr("cx", function (d) { return d.point[0]; })
-	            .attr("cy", function (d) { return d.point[1]; })
-	            .attr("r", 20)
-	            .transition()
-	            .duration(2000)
-	            .style("opacity", 0);
-	        circles.exit()
-	            .remove();
+	var TimerAnimation = (function () {
+	    function TimerAnimation() {
+	        this.svg = d3.select("svg");
+	        this.width = +this.svg.attr("width");
+	        this.height = +this.svg.attr("height");
+	        this.r = 50;
+	        this.slug = "timer-animation";
+	        this.title = "A circle moving around using d3.timer to animate";
 	    }
-	    // delete data points that are too old
-	    function reap() {
-	        for (var i = data.length - 1; i >= 0; i--) {
-	            var age = Date.now() - data[i].birthday;
-	            if (age > 3000)
-	                data.splice(i, 1);
-	        }
-	    }
-	    function update() {
-	        reap();
-	        render();
-	    }
-	    svg.on("click", function () {
-	        var coords = d3.mouse(d3.event.currentTarget);
-	        data.push({ point: coords, birthday: Date.now() });
-	        render();
-	    });
-	    update();
-	    d3.interval(update, 2000);
-	}
-	exports.main = main;
+	    TimerAnimation.prototype.start = function () {
+	        var _this = this;
+	        this.svg.append("circle")
+	            .attr("cx", this.r)
+	            .attr("cy", Math.floor(this.height / 2))
+	            .attr("r", this.r)
+	            .attr("fill", "darkorange");
+	        var circle = this.svg.select("circle");
+	        var move = function (elapsed) {
+	            // y = -cos(x)/2 + 0.5 gives nice oscillating output on [0, 1]
+	            var fraction = -Math.cos(elapsed / 1000) / 2 + 0.5;
+	            circle.attr("cx", _this.r + (fraction * (_this.width - 2 * _this.r)));
+	        };
+	        d3.timer(move);
+	    };
+	    return TimerAnimation;
+	}());
+	exports.TimerAnimation = TimerAnimation;
 
 
 /***/ }
