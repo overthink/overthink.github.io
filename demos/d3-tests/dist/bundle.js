@@ -52,13 +52,15 @@
 	var triangles_1 = __webpack_require__(5);
 	var rotatingTriangle_1 = __webpack_require__(7);
 	var timerAnimation_1 = __webpack_require__(8);
+	var dots_1 = __webpack_require__(9);
 	// ideally I'd enumerate these programmatically somehow
 	var exampleList = [
 	    new randomPoints_1.RandomPoints(),
 	    new triangles_1.Triangles(),
 	    new rotatingTriangle_1.RotatingTriangle(),
 	    new timerAnimation_1.TimerAnimation(),
-	    new mouse_1.Mouse()
+	    new mouse_1.Mouse(),
+	    new dots_1.Dots()
 	];
 	var examples = exampleList
 	    .reduce(function (acc, ex) { return acc.set(ex.slug, ex); }, i.Map());
@@ -194,6 +196,7 @@
 	            .attr("r", 20)
 	            .transition()
 	            .duration(2000)
+	            .attr("r", 0)
 	            .style("opacity", 0);
 	        circles.exit()
 	            .remove();
@@ -209,6 +212,7 @@
 	            if (age > 3000)
 	                this.data.splice(i, 1);
 	        }
+	        this.render(); // make sure svg matches data
 	    };
 	    ;
 	    Mouse.prototype.start = function () {
@@ -397,6 +401,63 @@
 	    return TimerAnimation;
 	}());
 	exports.TimerAnimation = TimerAnimation;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var d3 = __webpack_require__(1);
+	var svg = d3.select("svg");
+	var height = +svg.attr("height");
+	var width = +svg.attr("width");
+	var n = 75;
+	function initialData() {
+	    var data = [];
+	    var midY = Math.floor(height / 2);
+	    for (var i = 0; i < n; i++) {
+	        data.push([i * width / n, midY]);
+	    }
+	    return data;
+	}
+	function render(data) {
+	    var dots = svg.selectAll("circle").data(data);
+	    // newly arriving dots
+	    dots.enter()
+	        .append("circle")
+	        .attr("cx", function (d) { return d[0]; })
+	        .attr("cy", function (d) { return d[1]; })
+	        .attr("r", 2);
+	    // existing dots
+	    dots.transition()
+	        .duration(500)
+	        .ease(d3.easeLinear)
+	        .attr("cy", function (d) { return d[1]; });
+	}
+	var yrand = d3.randomUniform(-3, 3);
+	function perturb(data) {
+	    return data.map(function (p) {
+	        p[1] = p[1] + yrand();
+	        return p;
+	    });
+	}
+	function main() {
+	    var data = initialData();
+	    render(data);
+	    d3.interval(function () { return render(perturb(data)); }, 500);
+	}
+	var Dots = (function () {
+	    function Dots() {
+	        this.title = "Line of dots drifting randomly up and down";
+	        this.slug = "dots";
+	    }
+	    Dots.prototype.start = function () {
+	        main();
+	    };
+	    return Dots;
+	}());
+	exports.Dots = Dots;
 
 
 /***/ }
