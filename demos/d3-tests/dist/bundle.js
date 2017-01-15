@@ -52,7 +52,8 @@
 	var triangles_1 = __webpack_require__(5);
 	var rotatingTriangle_1 = __webpack_require__(7);
 	var timerAnimation_1 = __webpack_require__(8);
-	var dots_1 = __webpack_require__(9);
+	var dots = __webpack_require__(9);
+	var v = __webpack_require__(10);
 	// ideally I'd enumerate these programmatically somehow
 	var exampleList = [
 	    new randomPoints_1.RandomPoints(),
@@ -60,7 +61,8 @@
 	    new rotatingTriangle_1.RotatingTriangle(),
 	    new timerAnimation_1.TimerAnimation(),
 	    new mouse_1.Mouse(),
-	    new dots_1.Dots()
+	    dots.example,
+	    v.example
 	];
 	var examples = exampleList
 	    .reduce(function (acc, ex) { return acc.set(ex.slug, ex); }, i.Map());
@@ -447,17 +449,112 @@
 	    render(data);
 	    d3.interval(function () { return render(perturb(data)); }, 500);
 	}
-	var Dots = (function () {
-	    function Dots() {
-	        this.title = "Line of dots drifting randomly up and down";
-	        this.slug = "dots";
-	    }
-	    Dots.prototype.start = function () {
-	        main();
+	exports.example = {
+	    title: "Line of dots drifting randomly up and down",
+	    slug: "dots",
+	    start: function () { return main(); }
+	};
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	// Overly explainy comments in here since I'm trying to understand
+	// d3.voronoi better.
+	//
+	// much borrowed from https://bl.ocks.org/mbostock/4060366
+	var d3 = __webpack_require__(1);
+	function main() {
+	    d3.select("head").append("style").text("\n        .site {\n            fill: #333;\n        }\n        .polygon {\n            fill: none;\n            stroke: #ccc;\n            stroke-width: 2px;\n        }\n    ");
+	    // apparently there's a "margin convention" for d3:
+	    // http://bl.ocks.org/mbostock/3019563
+	    var margin = { top: 20, right: 10, bottom: 20, left: 10 };
+	    var svgElem = d3.select("svg");
+	    var svg = svgElem
+	        .append("g")
+	        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	    var width = +svgElem.attr("width") - margin.left - margin.right;
+	    var height = +svgElem.attr("height") - margin.top - margin.bottom;
+	    var n = 150;
+	    var x = d3.scaleLinear().range([0, width - 1]);
+	    var y = d3.scaleLinear().range([0, height - 1]);
+	    var siteData = d3.range(n)
+	        .map(function () { return [x(Math.random()), y(Math.random())]; });
+	    // "site" is Voronoi lingo for one of the dots on the diagram
+	    var drawSite = function (site) {
+	        site
+	            .attr("cx", function (d) { return d[0]; })
+	            .attr("cy", function (d) { return d[1]; })
+	            .attr("r", 2);
 	    };
-	    return Dots;
-	}());
-	exports.Dots = Dots;
+	    var drawPolygon = function (polygon) {
+	        // nb: a polygon's data can be null if its site is coincident with an earlier
+	        // polygon
+	        polygon.attr("d", function (d) { return d ? "M" + d.join("L") + "Z" : null; });
+	    };
+	    // Create a VoronoiLayout that can be used to create a Voronoi diagram
+	    // when given data. extent sets the clipping for the polygons in the diagram.
+	    var layout = d3.voronoi()
+	        .extent([[-1, -1], [width + 1, height + 1]]);
+	    var sites = svg.append("g")
+	        .selectAll("circle")
+	        .data(siteData)
+	        .enter()
+	        .append("circle")
+	        .classed("site", true)
+	        .call(drawSite);
+	    var polygons = svg.append("g")
+	        .selectAll("path")
+	        .data(layout.polygons(siteData))
+	        .enter()
+	        .append("path")
+	        .classed("polygon", true)
+	        .call(drawPolygon);
+	    var rand = d3.randomUniform(-1, 1);
+	    var perturb = function (data) {
+	        return data.map(function (p) {
+	            p[1] = p[1] + rand();
+	            p[0] = p[0] + rand();
+	            // clamp points within width x height
+	            if (p[0] > width)
+	                p[0] = width;
+	            if (p[0] < 0)
+	                p[0] = 0;
+	            if (p[1] > height)
+	                p[1] = height;
+	            if (p[1] < 0)
+	                p[1] = 0;
+	            return p;
+	        });
+	    };
+	    // Always make sure there is a site at the mouse location (looks cool)
+	    svgElem.on("touchmove mousemove", function () {
+	        var curPos = d3.mouse(d3.event.currentTarget);
+	        curPos[0] -= margin.left;
+	        curPos[1] -= margin.top;
+	        siteData[0] = curPos;
+	        update();
+	    });
+	    var update = function () {
+	        // move the sites around randomly
+	        siteData = perturb(siteData);
+	        // regenerate the diagram using the updated site data (rendering of
+	        // diagram not yet changed)
+	        var diagram = layout(siteData);
+	        // Update the polygons and sites we've already drawn using the data from the
+	        // new diagram we just created.
+	        polygons = polygons.data(diagram.polygons()).call(drawPolygon);
+	        sites = sites.data(siteData).call(drawSite);
+	    };
+	    d3.timer(update);
+	}
+	exports.example = {
+	    title: "Jittery Voronoi diagram with mouse interaction",
+	    slug: "voronoi",
+	    start: function () { return main(); }
+	};
 
 
 /***/ }
