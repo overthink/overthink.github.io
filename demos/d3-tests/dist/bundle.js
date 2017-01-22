@@ -54,6 +54,7 @@
 	var timerAnimation_1 = __webpack_require__(8);
 	var dots = __webpack_require__(9);
 	var v = __webpack_require__(10);
+	var penroseP2 = __webpack_require__(11);
 	// ideally I'd enumerate these programmatically somehow
 	var exampleList = [
 	    new randomPoints_1.RandomPoints(),
@@ -62,7 +63,8 @@
 	    new timerAnimation_1.TimerAnimation(),
 	    new mouse_1.Mouse(),
 	    dots.example,
-	    v.example
+	    v.example,
+	    penroseP2.example
 	];
 	var examples = exampleList
 	    .reduce(function (acc, ex) { return acc.set(ex.slug, ex); }, i.Map());
@@ -553,6 +555,151 @@
 	exports.example = {
 	    title: "Jittery Voronoi diagram with mouse interaction",
 	    slug: "voronoi",
+	    start: function () { return main(); }
+	};
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Based on Preshing's approach http://preshing.com/20110831/penrose-tiling-explained/
+	// He very cleverly uses complex numbers to do this, but I, less clever, am
+	// going to do it with 2d real coordinates.
+	"use strict";
+	var d3 = __webpack_require__(1);
+	function distance(a, b) {
+	    return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
+	}
+	/**
+	 * Return a new point that is point p rotated deg degrees clockwise around the
+	 * point about.
+	 */
+	function rotate(p, deg, about) {
+	    // translate p so rotation is around origin, then rotate with the usual
+	    // math, then translate result back so it's relative to about.
+	    var rad = deg * Math.PI / 180;
+	    var result = [0, 0];
+	    result[0] = (p[0] - about[0]) * Math.cos(rad) - (p[1] - about[1]) * Math.sin(rad) + about[0];
+	    result[1] = (p[1] - about[1]) * Math.cos(rad) + (p[0] - about[0]) * Math.sin(rad) + about[1];
+	    return result;
+	}
+	// My model of isosceles triangles: (AB and AC are equal length)
+	//
+	//      A
+	//     /ϴ\
+	//    /   \
+	//   B_____C
+	//
+	// Given points a and b defining one of the equal length sides of an isosceles
+	// triangle, and deg, the degrees between the equal length sizes, return c,
+	// the 3rd point of the triangle.
+	function isosceles(a, b, degrees) {
+	    // rotate negative degrees so point C matches our diagram (we're given A and B)
+	    return [a, b, rotate(b, -degrees, a)];
+	}
+	// function redTriangle(a: Point, b: Point): PenroseTriangle {
+	//     const t: any[] = isosceles(a, b, 36);
+	//     t.push(Colour.Red);
+	//     return <PenroseTriangle>t;
+	// }
+	function blueTriangle(a, b) {
+	    var t = isosceles(a, b, 108);
+	    t.push(1 /* Blue */);
+	    return t;
+	}
+	// draw triangle, but don't stroke the base, since they'll combine into rhombi
+	// once tiled
+	function drawTriangle(t) {
+	    t.attr("d", function (d) {
+	        // bc is the triangle base, so we don't stroke that
+	        var a = d[0], b = d[1], c = d[2];
+	        return "M" + [b, a, c].join("L");
+	    })
+	        .classed("red", function (d) { return d[3] == 0 /* Red */; })
+	        .classed("blue", function (d) { return d[3] == 1 /* Blue */; });
+	}
+	// Return a vector of length 1 starting at from in the direction of to.
+	function unitVector(from, to) {
+	    var d = distance(from, to);
+	    return [(to[0] - from[0]) / d, (to[1] - from[1]) / d];
+	}
+	// multiply vector by scala, return new vector
+	function multiply(vector, scalar) {
+	    return [vector[0] * scalar, vector[1] * scalar];
+	}
+	// Return a new vector that is the sum of v1 and v2
+	function sum(v1, v2) {
+	    return [v1[0] + v2[0], v1[1] + v2[1]];
+	}
+	var phi = (1 + Math.sqrt(5)) / 2;
+	// Split given triangle into two by adding a point p between a and b, s.t. it
+	// divides ab in the golden ratio. Then return triangles pca and cpb
+	function deflate(t) {
+	    var a = t[0], b = t[1], c = t[2], colour = t[3];
+	    var result = [];
+	    if (colour == 0 /* Red */) {
+	        var p = sum(a, multiply(unitVector(a, b), distance(a, b) / phi));
+	        result.push([c, p, b, 0 /* Red */], [p, c, a, 1 /* Blue */]);
+	    }
+	    else {
+	        var q = sum(b, multiply(unitVector(b, a), distance(b, a) / phi));
+	        var r = sum(b, multiply(unitVector(b, c), distance(b, c) / phi));
+	        result.push([q, r, b, 1 /* Blue */], [r, q, a, 0 /* Red */], [r, c, a, 1 /* Blue */]);
+	    }
+	    return result;
+	}
+	function deflateMany(ts) {
+	    return [].concat.apply([], ts.map(deflate));
+	}
+	// Apply f to args, then take the result of that and apply f to it again. Do
+	// this n times.
+	function iterate(f, args, n) {
+	    var result = args;
+	    while (n > 0) {
+	        result = f.call(null, result);
+	        n--;
+	    }
+	    return result;
+	}
+	function main() {
+	    d3.select("head").append("style").text("\n        .triangle {\n            stroke: #333;\n            stroke-width: 1px;\n        }\n        .red {\n            fill: darkorange;\n        }\n        .blue {\n            fill: steelblue;\n         }\n        path.fixup.red {\n            stroke: darkorange;\n            stroke-width: 2px;\n        }\n        path.fixup.blue {\n            stroke: steelblue;\n            stroke-width: 2px;\n        }\n    ");
+	    var margin = { top: 20, right: 10, bottom: 20, left: 10 };
+	    var svgElem = d3.select("svg");
+	    var svg = svgElem
+	        .append("g")
+	        .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+	    var width = +svgElem.attr("width") - margin.left - margin.right;
+	    var height = +svgElem.attr("height") - margin.top - margin.bottom;
+	    // TODO dumb: I'm drawing way more triangles than needed to fill the viewport
+	    var triangles = iterate(deflateMany, [blueTriangle([800, -200], [-700, 100])], 10);
+	    console.log("there are " + triangles.length + " triangles");
+	    // hack, anti-aliasing causes there to be a tiny gap between filled shapes
+	    // with no stroke along the adjaced edge... my work around is to draw a
+	    // fat stroke along these edges "under" the main shapes, so the gaps
+	    // appear to be filled in. Horrible, but works.
+	    //
+	    // "Horrible, but works." - All programmers on all software, ever.
+	    for (var _i = 0, triangles_1 = triangles; _i < triangles_1.length; _i++) {
+	        var t = triangles_1[_i];
+	        var b = t[1], c = t[2], colour = t[3];
+	        var d = "M" + [b, c].join("L");
+	        svg.append("path")
+	            .attr("d", d)
+	            .classed("fixup", true)
+	            .classed("red", colour == 0 /* Red */)
+	            .classed("blue", colour == 1 /* Blue */);
+	    }
+	    svg.selectAll("path.triangles") // need a "path" query that won't select the fixup lines
+	        .data(triangles)
+	        .enter()
+	        .append("path")
+	        .classed("triangle", true)
+	        .call(drawTriangle);
+	}
+	exports.example = {
+	    title: "Simple Penrose P2 tiling",
+	    slug: "penrose-p2",
 	    start: function () { return main(); }
 	};
 
