@@ -11,13 +11,21 @@ I've forgotten how to do it. This article is my personal reminder.
 My old [pixi.js article]({% post_url 2016-08-06-typescript-pixi-webpack %}) has
 similar, more complicated, and out of date info.
 
-## Goals
+## Goals & Principles
 
 * Use aggressive TypeScript settings for typechecking
 * Don't rely on anything installed globally (except npm)
-* `npm install` gets a freshly cloned repo up and running reliably
-* npm (commands) for automation and dependencies (no grunt, no typings, no bower, etc)
+  * i.e. `npm install` is the only command you need to get a get a freshly
+    cloned repo working
+* fewer tools is better than more tools
+  * i.e. npm (commands) for automation and dependencies (no grunt, no typings,
+    no bower, etc)
 * webpack for bundling
+* Assume [D3](https://d3js.org) and
+  [immutable.js](https://facebook.github.io/immutable-js/) for example external
+  dependencies (i.e. loaded via `<script>` tags in the HTML, not bundled by
+  webpack)
+  * See "externals" section of `webpack.config.js` below for more
 
 I don't know if this is good or "cool", but it has been working for me and seems
 relatively small and understandable.
@@ -29,15 +37,23 @@ mkdir myproj
 cd myproj
 mkdir src dist
 npm init     # (use `./dist/bundle.js` as entry point)
-npm install --save typescript webpack ts-loader source-map-loader
+npm install --save d3 immutable
+npm install --save-dev typescript webpack ts-loader source-map-loader @types/d3 @types/immutable
 git init
 ```
+
+The `@types` stuff loads type definitions from
+[DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped#definitelytyped-).
+There have been other ways to do this in the past, but this appears to be the
+TypeScript 2.x+ "best" way.
 
 ## Files to add to project root
 
 ### .gitignore
 
-I mostly use IDEA for TypeScript, but sometimes alm too.
+This will vary a lot by user.  I use [IDEA](https://www.jetbrains.com/idea/)
+(commercial) and [alm](http://alm.tools/) (free!) for TypeScript, and thus
+exclude their project files.
 
 ```text
 *.iml
@@ -125,11 +141,12 @@ module.exports = {
 };
 ```
 
-### npm run commands
+### Add npm script section
 
-So you can do stuff like `npm run build`, etc. Add this to `package.json`. The
-only semi-interesting thing here is that I'm not relying on globally installed
-webpack.
+i.e. `npm run` commands for automation.
+
+Add this to `package.json`. The only semi-interesting thing here is that I'm
+not relying on globally installed webpack.
 
 ```text
   // add to package.json
@@ -139,17 +156,3 @@ webpack.
     "clean": "rm ./dist/*"
   },
 ```
-
-## Add a new dependency with its types
-
-Use
-[DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped#definitelytyped-).
-
-e.g. Use [D3](https://d3js.org) as a dependency, with types as a dev-time
-dependency for TypeScript:
-
-```text
-npm install --save d3
-npm install --save-dev @types/d3
-```
-
