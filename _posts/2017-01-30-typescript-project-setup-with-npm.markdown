@@ -8,10 +8,15 @@ published: true
 Each time I want to start a new project with TypeScript and npm I find that
 I've forgotten how to do it. This article is my personal reminder.
 
-My old [pixi.js article]({% post_url 2016-08-06-typescript-pixi-webpack %}) has
+* TOC
+{:toc}
+
+Also, my old [pixi.js article]({% post_url 2016-08-06-typescript-pixi-webpack %}) has
 similar, more complicated, and out of date info.
 
-## Goals & Principles
+----
+
+## Approach
 
 * Use aggressive TypeScript settings for typechecking
 * Don't rely on anything installed globally (except npm)
@@ -21,8 +26,8 @@ similar, more complicated, and out of date info.
   * i.e. npm (commands) for automation and dependencies (no grunt, no typings,
     no bower, etc)
 * webpack for bundling
-* Assume [D3](https://d3js.org) and
-  [immutable.js](https://facebook.github.io/immutable-js/) for example external
+* As a working example, assume [D3](https://d3js.org) and
+  [immutable.js](https://facebook.github.io/immutable-js/) as example external
   dependencies (i.e. loaded via `<script>` tags in the HTML, not bundled by
   webpack)
   * See "externals" section of `webpack.config.js` below for more
@@ -140,6 +145,8 @@ module.exports = {
     ]
 };
 ```
+
+## package.json
 
 ### Add npm script section
 

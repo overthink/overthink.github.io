@@ -7,4 +7,5 @@ exclude:
   - update
   - README.md
   - .gitignore
-
+kramdown:
+  auto_ids: true
