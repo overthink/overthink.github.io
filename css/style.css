@@ -9,6 +9,23 @@ a code.highlighter-rouge {
   text-decoration: underline;  /* links in fixed width text are impossible to see without this */
 }
 
+a.header-link:hover {
+  color: #999;
+  text-decoration: none;
+}
+.header-link {
+  margin-left: 0.25em;
+  color: #999;
+  text-decoration: none;
+  opacity: 0;
+  \-webkit-transition: opacity 0.2s ease-in-out 0.1s;
+  \-moz-transition: opacity 0.2s ease-in-out 0.1s;
+  \-ms-transition: opacity 0.2s ease-in-out 0.1s;
+}
+h2:hover .header-link {
+  opacity: 1;
+}
+
 /* Keep footer pinned to bottom on short pages. */
 html {
   position: relative;

@@ -73,6 +73,28 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
+    <script>
+    // add heading link icons https://gist.github.com/SimplGy/a229d25cdb19d7f21231
+    (function() {
+      'use strict';
+      var headingNodes = [];
+      var results;
+      var link;
+      var tags = ['h2', 'h3', 'h4', 'h5', 'h6'];
+      tags.forEach(function(tag) {
+        results = document.getElementsByTagName(tag);
+        Array.prototype.push.apply(headingNodes, results);
+      });
+      headingNodes.forEach(function(node){
+        link = document.createElement('a');
+        link.className = 'header-link';
+        link.textContent = '¶';
+        link.href = '#' + node.getAttribute('id');
+        node.appendChild(link);
+      });
+    })();
+    </script>
+
   </body>
 </html>
 
