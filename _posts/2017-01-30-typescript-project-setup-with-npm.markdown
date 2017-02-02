@@ -123,15 +123,16 @@ module.exports = {
         extensions: [".ts", ".js"]
     },
     module: {
-        preLoaders: [
-            // All output '.js' files will have any sourcemaps re-processed by
-            // 'source-map-loader'.
-            { test: /\.js$/, loader: "source-map-loader" }
-        ],
-
-        loaders: [
-            // All files with a '.ts' extension will be handled by 'ts-loader'.
-            { test: /\.ts$/, loader: "ts-loader" }
+        rules: [
+            {
+                test: /\.js$/,
+                use: ["source-map-loader"],
+                enforce: "pre"
+            },
+            {
+                test: /\.ts$/,
+                use: ["ts-loader"]
+            }
         ]
     },
     // Omit "externals" if you don't have any. Just an example because it's
