@@ -11,9 +11,6 @@ I've forgotten how to do it. This article is my personal reminder.
 * TOC
 {:toc}
 
-Also, my old [pixi.js article]({% post_url 2016-08-06-typescript-pixi-webpack %}) has
-similar, more complicated, and out of date info.
-
 ----
 
 ## Approach
@@ -43,7 +40,8 @@ cd myproj
 mkdir src dist
 npm init     # (use `./dist/bundle.js` as entry point)
 npm install --save d3 immutable
-npm install --save-dev typescript webpack ts-loader source-map-loader @types/d3 @types/immutable
+npm install --save-dev typescript webpack ts-loader source-map-loader \
+  webpack-dev-server @types/d3 @types/immutable
 git init
 ```
 
@@ -111,6 +109,7 @@ point.
 Create `webpack.config.js` in the project root. Something like:
 
 ```js
+const path = require("path");
 module.exports = {
     entry: "./src/index.ts",
     output: {
@@ -135,6 +134,11 @@ module.exports = {
             }
         ]
     },
+    devServer: {
+        contentBase: path.join(__dirname, "/dist"),
+        compress: true,
+        port: 8000
+    }
     // Omit "externals" if you don't have any. Just an example because it's
     // common to have them.
     externals: [
@@ -159,8 +163,15 @@ not relying on globally installed webpack.
 ```text
   // add to package.json
   "scripts": {
+    "start": "node_modules/.bin/webpack-dev-server",
     "build": "node_modules/.bin/webpack",
     "build:watch": "node_modules/.bin/webpack -w",
     "clean": "rm ./dist/*"
   },
 ```
+
+## References
+
+* [A very elaborate typescript+webpack skeleton](https://github.com/aurelia/skeleton-navigation/tree/master/skeleton-typescript-webpack)
+* My old [pixi.js article]({% post_url 2016-08-06-typescript-pixi-webpack %}) - similar, more complicated, and out of date
+
