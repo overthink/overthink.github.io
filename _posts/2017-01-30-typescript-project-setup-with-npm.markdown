@@ -1,7 +1,7 @@
 ---
 layout: post
-title: TypeScript 2.1, npm, and webpack
-description: How to setup a TypeScript 2.1 project with npm and webpack
+title: TypeScript 2.1, npm, and webpack 2
+description: How to setup a TypeScript 2.1 project with npm and webpack 2
 published: true
 ---
 
@@ -15,6 +15,7 @@ I've forgotten how to do it. This article is my personal reminder.
 
 ## Approach
 
+* Prefer as little boilerplate as possible
 * Use aggressive TypeScript settings for typechecking
 * Don't rely on anything installed globally (except npm)
   * i.e. `npm install` is the only command you need to get a get a freshly
@@ -40,8 +41,9 @@ cd myproj
 mkdir src dist
 npm init     # (use `./dist/bundle.js` as entry point)
 npm install --save d3 immutable
-npm install --save-dev typescript webpack ts-loader source-map-loader \
-  webpack-dev-server @types/d3 @types/immutable
+npm install --save-dev typescript@2 webpack@2 ts-loader source-map-loader \
+  webpack-dev-server@2 @types/d3 @types/immutable
+echo "console.log('hello world');" > src/index.ts
 git init
 ```
 
@@ -138,7 +140,7 @@ module.exports = {
         contentBase: path.join(__dirname, "/dist"),
         compress: true,
         port: 8000
-    }
+    },
     // Omit "externals" if you don't have any. Just an example because it's
     // common to have them.
     externals: [
@@ -173,5 +175,6 @@ not relying on globally installed webpack.
 ## References
 
 * [A very elaborate typescript+webpack skeleton](https://github.com/aurelia/skeleton-navigation/tree/master/skeleton-typescript-webpack)
+* [WTF is webpack, really](https://blog.madewithenvy.com/getting-started-with-webpack-2-ed2b86c68783)
 * My old [pixi.js article]({% post_url 2016-08-06-typescript-pixi-webpack %}) - similar, more complicated, and out of date
 
