@@ -5,6 +5,9 @@ description: How to setup a TypeScript 2.1 project with npm and webpack 2
 published: true
 ---
 
+**Update 11-Mar-2017:** I put a little skeleton repo up at
+[https://github.com/overthink/tstemplate](https://github.com/overthink/tstemplate)
+
 Each time I want to start a new project with TypeScript and npm I find that
 I've forgotten how to do it. This article is my personal reminder.
 
