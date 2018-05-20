@@ -1,6 +1,7 @@
 ---
 layout: post
-title: "Circlet and Usher - Small Web App Libraries for Scala"
+title: "Circlet and Usher"
+subtitle: "Small Web App Libraries for Scala"
 description: A brief overview of Circlet and Usher, Scala libraries for creating web apps
 published: true
 ---

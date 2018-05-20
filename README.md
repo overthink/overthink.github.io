@@ -14,5 +14,6 @@ Published magically via GitHub Pages.
 
 ## Dev
 
+* Run `update` to get latest `github-pages` installed
 * Run `serve` script in repo root
 

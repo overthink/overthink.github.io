@@ -18,7 +18,7 @@ I decided to make a clone of Gabriel's demo so I could better understand how it
 worked.  Once I got into it, I also added entity interpolation, which is talked
 about in the articles, but not implemented in the original demo.
 
-Try out [**my version of the demo**](http://www.proofbyexample.com/demos/fpmclone) if
+Try out [**my version of the demo**](https://www.proofbyexample.com/demos/fpmclone) if
 you're interested. The code is [here](https://github.com/overthink/fpmclone).
 
 It's written in TypeScript 2.0 for mental health reasons.

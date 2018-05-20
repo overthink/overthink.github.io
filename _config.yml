@@ -1,5 +1,5 @@
 meta:
-    absolute_baseurl: http://proofbyexample.com
+    absolute_baseurl: https://proofbyexample.com
 highlighter: rouge
 permalink: /:title.html
 exclude:
