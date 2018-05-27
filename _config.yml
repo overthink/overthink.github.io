@@ -2,6 +2,7 @@ meta:
     absolute_baseurl: https://proofbyexample.com
 highlighter: rouge
 permalink: /:title.html
+host: 0.0.0.0
 exclude:
   - serve
   - update
