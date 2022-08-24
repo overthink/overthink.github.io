@@ -12,8 +12,8 @@ author: Mark Feeney
 email: mark.feeney@gmail.com
 github_username: overthink
 google_analytics: UA-10992117-4
-disqus:
-  shortname: proofbyexample
+# disqus:
+#   shortname: proofbyexample
 # minima theme stuff: end
 
 # host addr to use in dev mode
