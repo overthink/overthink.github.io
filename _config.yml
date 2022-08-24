@@ -1,12 +1,30 @@
-meta:
-    absolute_baseurl: https://proofbyexample.com
-highlighter: rouge
+title: Proof By Example
+description: >
+  The personal blog of Mark Feeney. Mostly software and programming things, but
+  other ramblings too.
 permalink: /:title.html
+url: https://www.proofbyexample.com
+
+theme: minima
+
+# minima theme stuff: begin
+author: Mark Feeney
+email: mark.feeney@gmail.com
+github_username: overthink
+google_analytics: UA-10992117-4
+disqus:
+  shortname: proofbyexample
+# minima theme stuff: end
+
+# host addr to use in dev mode
 host: 0.0.0.0
+
 exclude:
   - serve
   - update
   - README.md
   - .gitignore
-kramdown:
-  auto_ids: true
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
